@@ -9,6 +9,7 @@ import datetime
 import csv
 import os
 from sqlalchemy import create_engine
+import settings
 
 PATH = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 SPOOL_PATH = PATH / 'spool'
@@ -50,7 +51,7 @@ def get_delivery_params(param_string):
     except KeyError:
         print('Login is not defined')
     try:
-        login = param_string['folder']
+        remote_dir = param_string['folder']
     except KeyError:
         print('Remote directory is not defined')
     try:
@@ -101,8 +102,9 @@ def main(raw_email):
     # get delivery params
     transport, host, login, password, identity, remote_dir = get_delivery_params(upload_creds)
     # if deined delivery params, save attach
-    if not (transport and host and remote_dir and (password or identity)):
-        print(f"Delivery params are not fully defined transport: {transport}, host: {host}, password: {password}, identity: {identity} ")
+    # if not (transport and host and remote_dir and (password or identity)):
+    if not (transport and host and remote_dir and (password or identity)):    
+        print(f"Delivery params are not fully defined transport: {transport}, host: {host}, password: {password},remote_dir: {remote_dir} identity: {identity}")
         return
     # Save attached files and populate delivery parameters
     for attach in mail.attachments:
