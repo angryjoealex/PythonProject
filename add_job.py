@@ -29,5 +29,3 @@ def insert(data):
         db_session.add(add_job)
         db_session.commit()
 
-if __name__ == '__main__':
-    insert(data)
