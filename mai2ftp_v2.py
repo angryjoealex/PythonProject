@@ -8,7 +8,8 @@ from datetime import timezone
 import datetime
 import csv
 import os
-from sqlalchemy import create_engine
+import subprocess
+import add_job
 import settings
 
 PATH = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
@@ -38,6 +39,8 @@ def get_delivery_params(param_string):
     password = None
     identity = None
     remote_dir = None
+    port = None
+    local = None
     try:
         transport = param_string['transport']
     except KeyError:
@@ -55,6 +58,14 @@ def get_delivery_params(param_string):
     except KeyError:
         print('Remote directory is not defined')
     try:
+        port = param_string['port']
+    except KeyError:
+        pass # port could not be defined
+    try:
+        local = param_string['local']
+    except KeyError:
+        pass # local could not be defined
+    try:
         password = param_string['password']
         if not param_string['password']:
             try:
@@ -63,10 +74,10 @@ def get_delivery_params(param_string):
                 print('No password or key file is defined')
     except KeyError:
         print('No password or key file is defined')
-    return transport, host, login, password, identity, remote_dir
+    return transport, host, login, password, identity, remote_dir, port, local
 
 
-def main(raw_email):
+def main(utc_ts, raw_email):
     delivery = []
     # Parse email from file  and delete raw email
     mail = mailparser.parse_from_file(raw_email)
@@ -100,20 +111,19 @@ def main(raw_email):
     # convert to dict
     upload_creds = literal_eval(params)
     # get delivery params
-    transport, host, login, password, identity, remote_dir = get_delivery_params(upload_creds)
+    transport, host, login, password, identity, remote_dir, port, local = get_delivery_params(upload_creds)
     # if deined delivery params, save attach
-    # if not (transport and host and remote_dir and (password or identity)):
-    if not (transport and host and remote_dir and (password or identity)):    
+    if not (transport and host and remote_dir and (password or identity)):
         print(f"Delivery params are not fully defined transport: {transport}, host: {host}, password: {password},remote_dir: {remote_dir} identity: {identity}")
         return
     # Save attached files and populate delivery parameters
     for attach in mail.attachments:
         attached_file_w_path = ''
-        filename = re.search('filename=".*"', attach['content-disposition'].replace('\n',' '))
+        filename = re.search('filename=".*"', attach['content-disposition'].replace('\n', ' '))
         try:
             filename.group(0)
-            filename = filename.group(0).replace('filename=','').replace('"','')
-            attached_file_w_path = SPOOL_PATH / received_id_posfix / filename
+            filename = filename.group(0).replace('filename=', '').replace('"', '')
+            attached_file_w_path = str(SPOOL_PATH / received_id_posfix / filename)
         except IndexError:
             print("Can't get attach name")
             return
@@ -123,19 +133,35 @@ def main(raw_email):
         except PermissionError as error:
             print(f"{error}.\n Can't write attached file")
             return
-        delivery.append({'transport': transport, 'host': host,'login': login,'password': password,'identity': identity, 'file': attached_file_w_path})
-    # test - write delivery par to csv
+        delivery.append({
+            'id': utc_ts,
+            'postfix_id': received_id_posfix,
+            'transport': transport,
+            'host': host,
+            'login': login,
+            'password': password,
+            'port': port,
+            'remote_dir': remote_dir,
+            'identity': identity,
+            'file': attached_file_w_path,
+            'local': local,
+            'status': 'initial delivery'
+        })
+    # DEBUG - write delivery par to csv
     param_out = SPOOL_PATH / received_id_posfix / 'delivery.csv'
     headers = delivery[0].keys()
     with open(param_out, mode="w+", encoding='utf-8') as param_file:
         file_writer = csv.DictWriter(param_file, headers, delimiter=";", lineterminator="\r")
         file_writer.writeheader()
         file_writer.writerows(delivery)
-
+    # DEBUG
+    # print(delivery)
+    # for task in delivery:
+    #     print(task)    
+    add_job.insert(delivery)
 
 utc_ts = get_utc_timestamp()
 raw_email = SPOOL_PATH / utc_ts
-
 # Read mail from POSTFIX
 data = sys.stdin.read()
 try:
@@ -144,4 +170,5 @@ try:
 except (FileNotFoundError, PermissionError) as error:
     print(f"{error}\nCan't write raw email")
 
-main(raw_email)
+main(utc_ts, raw_email)
+
