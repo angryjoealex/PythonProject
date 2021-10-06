@@ -24,7 +24,8 @@ def get_job(job_id):
             'spool': file.spool,
             'local': file.local
         })
-    SFTP.SFTP_upload(delivery)
+    if delivery[0]['transport'] == 'SFTP':
+        SFTP.SFTP_upload(delivery)
 
 
 get_job(job_id_test)

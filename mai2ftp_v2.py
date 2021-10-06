@@ -75,6 +75,18 @@ def get_delivery_params(param_string):
     return transport, host, login, password, key, remote_dir, port, local
 
 
+def save_mail_body(path,mail):
+    try:
+        pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
+        """Save email body"""
+        with open(path / 'message', 'w+') as message_body:
+            message_body.write(mail)
+    except PermissionError as error:
+        print(f"Can't write email body.\n {error}")
+        exit(0)
+
+
 def main(utc_ts, raw_email):
     delivery = []
     # Parse email from file  and delete raw email
@@ -82,7 +94,6 @@ def main(utc_ts, raw_email):
     remove_file(raw_email)
     # Get POSTFIX mail ID
     for received in mail.received:
-
         """there are 2 received: host to gateway, gateway to script. We get data from host to gateway received"""
         try:
             received['with']
@@ -92,15 +103,7 @@ def main(utc_ts, raw_email):
 
     """create spool folder for POSTFIX mail ID"""
     spool_path_file = SPOOL_PATH / utc_ts
-    try:
-        pathlib.Path(spool_path_file).mkdir(parents=True, exist_ok=True)
-
-        """Save email body"""
-        with open(spool_path_file / 'message', 'w+') as message_body:
-            message_body.write(mail.body)
-    except PermissionError as error:
-        print(f"Can't write email body.\n {error}")
-        return
+    save_mail_body(spool_path_file, mail.body)
 
     """search params for delivery in mail body"""
     get_param = re.search('mail2ftp:\{.+\}', mail.body)
@@ -154,17 +157,7 @@ def main(utc_ts, raw_email):
             'local': local,
             'status': 'initial delivery'
         })
-    # DEBUG - write delivery par to csv
-    param_out = SPOOL_PATH / utc_ts / 'delivery.csv'
-    headers = delivery[0].keys()
-    with open(param_out, mode="w+", encoding='utf-8') as param_file:
-        file_writer = csv.DictWriter(param_file, headers, delimiter=";", lineterminator="\r")
-        file_writer.writeheader()
-        file_writer.writerows(delivery)
-    # DEBUG
-    # print(delivery)
-    # for task in delivery:
-    #     print(task)
+
     """Here we add job to database"""    
     add_job.insert(delivery)
 
