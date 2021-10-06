@@ -4,7 +4,8 @@ from db import Base, engine
 
 class job(Base):
     __tablename__ = 'mail2ftp'
-    id = Column(String, primary_key=True)
+    idx = Column(Integer, primary_key=True,autoincrement=True)
+    id = Column(String)
     postfix_id = Column(String)
     transport = Column(String)
     host = Column(String)

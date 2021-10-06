@@ -90,7 +90,7 @@ def main(utc_ts, raw_email):
         except KeyError:
             pass  # there are 2 received: host to gateway, gateway to script. We get data from host to gateway received
     #create spool folder for POSTFIX mail ID
-    spool_path_file = SPOOL_PATH / received_id_posfix
+    spool_path_file = SPOOL_PATH / utc_ts
     try:
         pathlib.Path(spool_path_file).mkdir(parents=True, exist_ok=True)
         # Save email body
@@ -123,13 +123,13 @@ def main(utc_ts, raw_email):
         try:
             filename.group(0)
             filename = filename.group(0).replace('filename=', '').replace('"', '')
-            attached_file_w_path = str(SPOOL_PATH / received_id_posfix / filename)
+            attached_file_w_path = str(SPOOL_PATH / utc_ts / filename)
         except IndexError:
             print("Can't get attach name")
             return
     # write attach to spool and polpulate variable
         try:
-            mail.write_attachments(SPOOL_PATH/received_id_posfix)
+            mail.write_attachments(SPOOL_PATH/utc_ts)
         except PermissionError as error:
             print(f"{error}.\n Can't write attached file")
             return
@@ -148,7 +148,7 @@ def main(utc_ts, raw_email):
             'status': 'initial delivery'
         })
     # DEBUG - write delivery par to csv
-    param_out = SPOOL_PATH / received_id_posfix / 'delivery.csv'
+    param_out = SPOOL_PATH / utc_ts / 'delivery.csv'
     headers = delivery[0].keys()
     with open(param_out, mode="w+", encoding='utf-8') as param_file:
         file_writer = csv.DictWriter(param_file, headers, delimiter=";", lineterminator="\r")
