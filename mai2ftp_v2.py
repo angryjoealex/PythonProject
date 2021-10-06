@@ -1,16 +1,14 @@
-import sys
-import mailparser
-import logging
-import re
-from ast import literal_eval
-import pathlib
-from datetime import timezone
-import datetime
-import csv
-import os
-import subprocess
 import add_job
-import settings
+import csv
+import datetime
+import mailparser
+import os
+import logging
+import pathlib
+import re
+import sys
+from ast import literal_eval
+from datetime import timezone
 
 PATH = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 SPOOL_PATH = PATH / 'spool'
@@ -20,7 +18,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     filename=PATH / 'mail2_ftp2.log')
 
 
-# get UTC timestamp
+"""get UTC timestamp"""
 def get_utc_timestamp():
     dt = datetime.datetime.now(timezone.utc)
     utc_time = dt.replace(tzinfo=timezone.utc)
@@ -37,7 +35,7 @@ def get_delivery_params(param_string):
     host = None
     login = None
     password = None
-    identity = None
+    key = None
     remote_dir = None
     port = None
     local = None
@@ -69,12 +67,12 @@ def get_delivery_params(param_string):
         password = param_string['password']
         if not param_string['password']:
             try:
-                identity = param_string['ftp_identity']
+                key = param_string['ftp_identity']
             except KeyError:
                 print('No password or key file is defined')
     except KeyError:
         print('No password or key file is defined')
-    return transport, host, login, password, identity, remote_dir, port, local
+    return transport, host, login, password, key, remote_dir, port, local
 
 
 def main(utc_ts, raw_email):
@@ -84,22 +82,27 @@ def main(utc_ts, raw_email):
     remove_file(raw_email)
     # Get POSTFIX mail ID
     for received in mail.received:
+
+        """there are 2 received: host to gateway, gateway to script. We get data from host to gateway received"""
         try:
             received['with']
             received_id_posfix = received['id']
         except KeyError:
-            pass  # there are 2 received: host to gateway, gateway to script. We get data from host to gateway received
-    #create spool folder for POSTFIX mail ID
+            pass 
+
+    """create spool folder for POSTFIX mail ID"""
     spool_path_file = SPOOL_PATH / utc_ts
     try:
         pathlib.Path(spool_path_file).mkdir(parents=True, exist_ok=True)
-        # Save email body
+
+        """Save email body"""
         with open(spool_path_file / 'message', 'w+') as message_body:
             message_body.write(mail.body)
     except PermissionError as error:
         print(f"Can't write email body.\n {error}")
         return
-    # get params for delivery
+
+    """search params for delivery in mail body"""
     get_param = re.search('mail2ftp:\{.+\}', mail.body)
     try:
         get_param.group(0)
@@ -108,26 +111,29 @@ def main(utc_ts, raw_email):
         return
     params = get_param.group(0).replace('mail2ftp:', '')
     params = re.sub(r"(\w+): ", r"'\1':", params).replace(' ', '')
-    # convert to dict
+
+    """convert to dict"""
     upload_creds = literal_eval(params)
-    # get delivery params
-    transport, host, login, password, identity, remote_dir, port, local = get_delivery_params(upload_creds)
-    # if deined delivery params, save attach
-    if not (transport and host and remote_dir and (password or identity)):
-        print(f"Delivery params are not fully defined transport: {transport}, host: {host}, password: {password},remote_dir: {remote_dir} identity: {identity}")
+
+    """get delivery params"""
+    transport, host, login, password, key, remote_dir, port, local = get_delivery_params(upload_creds)
+
+    """if deined delivery params, save attach"""
+    if not (transport and host and remote_dir and (password or key)):
+        print(f"Delivery params are not fully defined transport: {transport}, host: {host}, password: {password},remote_dir: {remote_dir} identity: {key}")
         return
-    # Save attached files and populate delivery parameters
+
+    """Save attached files and populate delivery parameters for database insert"""
     for attach in mail.attachments:
-        attached_file_w_path = ''
         filename = re.search('filename=".*"', attach['content-disposition'].replace('\n', ' '))
         try:
             filename.group(0)
             filename = filename.group(0).replace('filename=', '').replace('"', '')
-            attached_file_w_path = str(SPOOL_PATH / utc_ts / filename)
         except IndexError:
             print("Can't get attach name")
             return
-    # write attach to spool and polpulate variable
+
+        """write attach to spool and polpulate variable"""
         try:
             mail.write_attachments(SPOOL_PATH/utc_ts)
         except PermissionError as error:
@@ -142,8 +148,9 @@ def main(utc_ts, raw_email):
             'password': password,
             'port': port,
             'remote_dir': remote_dir,
-            'identity': identity,
-            'file': attached_file_w_path,
+            'key': key,
+            'file': filename,
+            'spool': str(spool_path_file),
             'local': local,
             'status': 'initial delivery'
         })
@@ -157,12 +164,14 @@ def main(utc_ts, raw_email):
     # DEBUG
     # print(delivery)
     # for task in delivery:
-    #     print(task)    
+    #     print(task)
+    """Here we add job to database"""    
     add_job.insert(delivery)
 
 utc_ts = get_utc_timestamp()
 raw_email = SPOOL_PATH / utc_ts
-# Read mail from POSTFIX
+
+"""Read mail from POSTFIX"""
 data = sys.stdin.read()
 try:
     with open(raw_email, 'w+') as file:

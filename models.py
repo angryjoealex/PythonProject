@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, BigInteger
 from db import Base, engine
 
 
-class job(Base):
+class Job(Base):
     __tablename__ = 'mail2ftp'
     idx = Column(BigInteger, primary_key=True, autoincrement=True)
     id = Column(BigInteger)
@@ -11,10 +11,11 @@ class job(Base):
     host = Column(String)
     login = Column(String)
     password = Column(String)
-    port = Column(String)
+    port = Column(Integer)
     remote_dir = Column(String)
     key = Column(String)
     file = Column(String)
+    spool = Column(String)
     local = Column(Boolean)
     last_error = Column(String)
     status = Column(String)

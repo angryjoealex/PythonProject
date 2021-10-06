@@ -1,5 +1,30 @@
-from models import job
+import SFTP
+from models import Job
 
-job_to_do = job.query.filter(job.id==1633515776793665)
-for task in job_to_do:
-    print(f'id: {task.id}, file: {task.file}, transport: {task.transport}')
+job_id_test = 1633524397712855
+
+
+def get_job(job_id):
+    delivery=[]
+    job_to_do = Job.query.filter(Job.id == job_id)
+
+    for file in job_to_do:
+        delivery.append({
+            'id': file.id,
+            'transport': file.transport,
+            'host': file.host,
+            'login': file.login,
+            'password': file.password,
+            'port': file.port,
+            'remote_dir': file.remote_dir,
+            'remote_file': f"{file.remote_dir}/{file.file}",
+            'key': file.key,
+            'file': file.file,
+            'spool_file':f"{file.spool}/{file.file}",
+            'spool': file.spool,
+            'local': file.local
+        })
+    SFTP.SFTP_upload(delivery)
+
+
+get_job(job_id_test)
