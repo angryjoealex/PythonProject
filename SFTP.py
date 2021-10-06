@@ -9,7 +9,6 @@ def put_files(job,sftp):
 
 
 def SFTP_upload(delivery):
-    # print(delivery)
     if not delivery[0]['key']:
         with pysftp.Connection(
             host=delivery[0]['host'],

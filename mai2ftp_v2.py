@@ -72,7 +72,7 @@ def save_mail_body(path, mail):
 
 
 def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfix):
-    payload=[]
+    payload = []
     transport, host, login, password, key, remote_dir, port, local = get_delivery_params(upload_creds)
     for attach in mail.attachments:
             filename = re.search('filename=".*"', attach['content-disposition'].replace('\n', ' '))

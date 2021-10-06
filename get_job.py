@@ -5,7 +5,7 @@ job_id_test = 1633524397712855
 
 
 def get_job(job_id):
-    delivery=[]
+    delivery = []
     job_to_do = Job.query.filter(Job.id == job_id)
 
     for file in job_to_do:
