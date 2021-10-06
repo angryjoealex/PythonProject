@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, BigInteger
 from db import Base, engine
 
 
 class job(Base):
     __tablename__ = 'mail2ftp'
-    idx = Column(Integer, primary_key=True,autoincrement=True)
-    id = Column(String)
+    idx = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(BigInteger)
     postfix_id = Column(String)
     transport = Column(String)
     host = Column(String)
@@ -18,7 +18,7 @@ class job(Base):
     local = Column(Boolean)
     last_error = Column(String)
     status = Column(String)
-    last_status_ts = Column(String)
+    last_status_ts = Column(BigInteger)
     attempts = Column(Integer)
     next_attempt = Column(String)
 
