@@ -1,17 +1,15 @@
 from db import db_session
 from models import Job
 
-DEFAULT_SFTP_PORT = 22
-DEFAULT_FTP_PORT = 21
-
+DEFAULT_PORTS = {
+   'SFTP':22,
+   'FTP':21
+}
 
 def insert(data):
     for task in data:
         if not task['port']:
-            if task['transport'] == 'SFTP':
-                task['port'] = DEFAULT_SFTP_PORT
-            elif task['transport'] == 'FTP':
-                task['port'] = DEFAULT_FTP_PORT
+            task['port'] = DEFAULT_PORTS.get(task['transport'])
         if not task['local']:
             task['local'] = 0
         add_job = Job(

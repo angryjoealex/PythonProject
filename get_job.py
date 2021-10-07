@@ -1,7 +1,11 @@
+import pathlib
+import os
+
 import SFTP
 from models import Job
 
-job_id_test = 1633524397712855
+PATH = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
+job_id_test = 1633544566870036
 
 
 def get_job(job_id):
@@ -18,7 +22,7 @@ def get_job(job_id):
             'port': file.port,
             'remote_dir': file.remote_dir,
             'remote_file': f"{file.remote_dir}/{file.file}",
-            'key': file.key,
+            'key': str(PATH/file.key),
             'file': file.file,
             'spool_file':f"{file.spool}/{file.file}",
             'spool': file.spool,

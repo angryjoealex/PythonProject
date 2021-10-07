@@ -20,9 +20,10 @@ def SFTP_upload(delivery):
     else:
         with pysftp.Connection(
             host=delivery[0]['host'],
-            username=delivery[0]['login'],
-            password=delivery[0]['password'],
+        #    username=delivery[0]['login'],
+        #    password=delivery[0]['password'],
             port=delivery[0]['port'],
-            private_key=delivery[0]['key']
+        #    private_key=delivery[0]['key']
+            private_key='/Users/apetrov/LearnPython/projects/mail2ftp/id_rsa'
         ) as sftp:
             put_files(delivery, sftp)
