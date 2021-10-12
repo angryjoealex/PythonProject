@@ -1,13 +1,16 @@
 from db import db_session
+
 from models import Job
+from run_worker import send_files
 
 DEFAULT_PORTS = {
-   'SFTP':22,
-   'FTP':21
+   'SFTP': 22,
+   'FTP': 21
 }
 
-def insert(data):
-    for task in data:
+
+def add_task(delivery):
+    for task in delivery:
         if not task['port']:
             task['port'] = DEFAULT_PORTS.get(task['transport'])
         if not task['local']:
@@ -30,3 +33,4 @@ def insert(data):
             )
         db_session.add(add_job)
         db_session.commit()
+    send_files.send(delivery[0]['id'])

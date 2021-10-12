@@ -1,16 +1,14 @@
-import pathlib
-import os
-
-import SFTP
+from SFTP import SFTP_upload
 from models import Job
+from common import get_path
 
-PATH = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
-job_id_test = 1633544566870036
+PATH = get_path()
+# job_id_test = 1634028543835628
 
 
-def get_job(job_id):
+def get_task(id):
     delivery = []
-    job_to_do = Job.query.filter(Job.id == job_id)
+    job_to_do = Job.query.filter(Job.id == id)
 
     for file in job_to_do:
         delivery.append({
@@ -22,14 +20,13 @@ def get_job(job_id):
             'port': file.port,
             'remote_dir': file.remote_dir,
             'remote_file': f"{file.remote_dir}/{file.file}",
-            'key': str(PATH/file.key),
+            'key': str(PATH/file.key) if file.key else file.key,
             'file': file.file,
             'spool_file':f"{file.spool}/{file.file}",
             'spool': file.spool,
             'local': file.local
         })
     if delivery[0]['transport'] == 'SFTP':
-        SFTP.SFTP_upload(delivery)
+        SFTP_upload(delivery)
 
-
-get_job(job_id_test)
+# get_task(job_id_test)
