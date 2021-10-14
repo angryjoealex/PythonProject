@@ -2,13 +2,14 @@ from SFTP import SFTP_upload
 from models import Job
 from common import get_path
 
+from sqlalchemy import and_, or_, not_
+
 PATH = get_path()
-# job_id_test = 1634028543835628
 
 
 def get_task(id):
     delivery = []
-    job_to_do = Job.query.filter(Job.id == id)
+    job_to_do = Job.query.filter(and_(Job.id == id, Job.status != 'Completed'))
 
     for file in job_to_do:
         delivery.append({
@@ -18,9 +19,9 @@ def get_task(id):
             'login': file.login,
             'password': file.password,
             'port': file.port,
-            'remote_dir': file.remote_dir,
-            'remote_file': f"{file.remote_dir}/{file.file}",
-            'key': str(PATH/file.key) if file.key else file.key,
+            'folder': file.folder,
+            'remote_file': f"{file.folder}/{file.file}",
+            'key': file.key,
             'file': file.file,
             'spool_file':f"{file.spool}/{file.file}",
             'spool': file.spool,
@@ -28,5 +29,3 @@ def get_task(id):
         })
     if delivery[0]['transport'] == 'SFTP':
         SFTP_upload(delivery)
-
-# get_task(job_id_test)

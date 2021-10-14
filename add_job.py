@@ -23,13 +23,13 @@ def add_task(delivery):
             login=task['login'],
             password=task['password'],
             port=task['port'],
-            remote_dir=task['remote_dir'],
+            folder=task['folder'],
             key=task['key'],
             file=task['file'],
             spool=task['spool'],
             local=task['local'],
             status=task['status'],
-            attempts=1
+            attempts=0
             )
         db_session.add(add_job)
         db_session.commit()

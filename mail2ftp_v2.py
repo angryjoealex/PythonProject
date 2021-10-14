@@ -6,44 +6,15 @@ from ast import literal_eval
 
 import mailparser
 
-from common import get_utc_timestamp
-from common import get_path
+from common import get_utc_timestamp, get_path, get_delivery_params, remove_file
 from add_job import add_task
 
 PATH = get_path()
 SPOOL_PATH = PATH / 'spool'
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.ERROR,
+                    level=logging.INFO,
                     filename=PATH / 'mail2_ftp2.log')
-
-
-def remove_file(path_to_file):
-    pathlib.Path.unlink(path_to_file)
-
-
-def get_delivery_params(param_string):
-    transport = None
-    host = None
-    login = None
-    password = None
-    key = None
-    remote_dir = None
-    port = None
-    local = None
-    transport = param_string.get('transport')
-    host = param_string.get('host')
-    login = param_string.get('login')
-    remote_dir = param_string.get('folder')
-    port = param_string.get('port')
-    local = param_string.get('local')
-    password = param_string.get('password')
-    key = param_string.get('ftp_identity')
-    if not (transport and host and remote_dir and (password or key)):
-        print(f"Delivery params are not fully defined transport: {transport}, host: {host}, password: {password},remote_dir: {remote_dir} identity: {key}")
-        exit(0)
-    return transport, host, login, password, key, remote_dir, port, local
-
 
 def save_mail_body(path, mail):
     try:
@@ -59,7 +30,13 @@ def save_mail_body(path, mail):
 def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfix):
     """This function get files from attach and save it to spool"""
     payload = []
-    transport, host, login, password, key, remote_dir, port, local = get_delivery_params(upload_creds)
+    params = get_delivery_params(upload_creds)
+    if not (params['transport'] and params['host'] and params['folder'] and (params['password'] or params['key'])):
+        print(f"Delivery params are not fully defined transport: {params['transport']}.\
+            , host: {params['host']}, password: {params['password']}.\
+            ,remote_dir:{params['folder']}, identity: {params['key']}")
+        exit(0)
+
     for attach in mail.attachments:
         filename = re.search('filename=".*"', attach['content-disposition'].replace('\n', ' '))
         try:
@@ -78,16 +55,16 @@ def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfi
         payload.append({
             'id': utc_ts,
             'postfix_id': received_id_posfix,
-            'transport': transport,
-            'host': host,
-            'login': login,
-            'password': password,
-            'port': port,
-            'remote_dir': remote_dir,
-            'key': key,
+            'transport': params['transport'],
+            'host': params['host'],
+            'login': params['login'],
+            'password': params['password'],
+            'port': params['port'],
+            'folder': params['folder'],
+            'key': params['key'],
             'file': filename,
             'spool': str(spool_path_file),
-            'local': local,
+            'local': params['local'],
             'status': 'initial delivery'
         })
     return payload

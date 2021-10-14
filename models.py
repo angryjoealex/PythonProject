@@ -12,7 +12,7 @@ class Job(Base):
     login = Column(String)
     password = Column(String)
     port = Column(Integer)
-    remote_dir = Column(String)
+    folder = Column(String)
     key = Column(String)
     file = Column(String)
     spool = Column(String)
