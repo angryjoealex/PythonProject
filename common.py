@@ -30,7 +30,7 @@ def list_files(path):
     list_of_files = []
     for root, dirs, files in os.walk(Path(path)):
         for file in files:
-            list_of_files.append(os.path.join(root, file))
+            list_of_files.append(file)
     return list_of_files
 
 

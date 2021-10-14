@@ -1,6 +1,7 @@
 import pysftp
 import pathlib
 import logging
+import shutil
 
 from requests import exceptions
 from sqlalchemy import and_, or_, not_
@@ -93,7 +94,8 @@ def SFTP_upload(delivery):
     ## check if there are any files except message
     if error:
         raise Exception('Restart task')
-    # try:
-    #     pathlib.Path(params['folder']).rmdir()
-    # except:
-    #     pass ## Pass if dir is not empty
+    #check if there any attachments    
+    files=list_files(params['spool'])
+    files.remove('message')
+    if len(files) == 0:
+        shutil.rmtree(params['spool'], ignore_errors=True)
