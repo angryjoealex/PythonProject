@@ -29,7 +29,7 @@ def put_files(delivery, sftp):
         except Exception as error:
             params.update(status='Error', last_status_ts=get_utc_timestamp(), last_error=str(error))
             status.append(params)
-            write_log(log_file, 'failed', params, str(error))
+            write_log(log_file, 'failed', params)
             continue 
     return status
 

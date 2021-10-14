@@ -9,8 +9,10 @@ def get_path():
     path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
     return path
 
+
 def remove_file(path_to_file):
     pathlib.Path.unlink(Path(path_to_file))
+
 
 def get_utc_timestamp():
     dt = datetime.datetime.now(timezone.utc)
@@ -28,7 +30,7 @@ def list_files(path):
     list_of_files = []
     for root, dirs, files in os.walk(Path(path)):
         for file in files:
-            list_of_files.append(os.path.join(root,file))
+            list_of_files.append(os.path.join(root, file))
     return list_of_files
 
 
@@ -66,12 +68,13 @@ def get_delivery_params(param_string):
             'spool_file': spool_file, 'file': file, 'spool': spool}
 
 
-def write_log(log_file, message_type, params, error=None):
+def write_log(log_file, message_type, params):
     message = None
     login=params.get('login')
     password=params.get('password')
     host=params.get('host')
     port=params.get('port')
+    error=params.get('last_error')
     remote_file=params.get('remote_file')
     spool_file=params.get('spool_file')
     with open(log_file, 'a+') as log:
