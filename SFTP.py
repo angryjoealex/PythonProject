@@ -36,6 +36,7 @@ def put_files(delivery, sftp):
 
 def SFTP_upload(delivery):
     status = []
+    error = None
     params = get_delivery_params(delivery)
     log_file = str(PATH / 'connection_logs' / str(id))
     cnopts = pysftp.CnOpts()
@@ -84,12 +85,15 @@ def SFTP_upload(delivery):
                 'attempts': (Job.attempts + 1),
                 })
         db_session.commit()
+        if i.get('last_error'):
+            error = i.get('last_error')
         ## remove uploaded files
         if i.get('status')=='Completed':
             remove_file(i.get('spool_file'))
     ## check if there are any files except message
-
-    try:
-        pathlib.Path(params['folder']).rmdir()
-    except:
-        pass ## Pass if dir is not empty
+    if error:
+        raise Exception('Restart task')
+    # try:
+    #     pathlib.Path(params['folder']).rmdir()
+    # except:
+    #     pass ## Pass if dir is not empty
