@@ -17,6 +17,7 @@ def add_task(delivery):
             task['local'] = 0
         add_job = Job(
             id=task['id'],
+            added=task['added'],
             postfix_id=task['postfix_id'],
             transport=task['transport'],
             host=task['host'],
@@ -29,6 +30,8 @@ def add_task(delivery):
             spool=task['spool'],
             local=task['local'],
             status=task['status'],
+            options=task['options'],
+            new_filename=task['new_filename'],
             attempts=0
             )
         db_session.add(add_job)

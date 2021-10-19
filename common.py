@@ -15,9 +15,7 @@ def remove_file(path_to_file):
 
 
 def get_utc_timestamp():
-    dt = datetime.datetime.now(timezone.utc)
-    utc_time = dt.replace(tzinfo=timezone.utc)
-    utc_timestamp = str(utc_time.timestamp()).replace('.', '')
+    utc_timestamp = str(datetime.datetime.utcnow().timestamp()).replace('.', '')
     return utc_timestamp
 
 
@@ -25,6 +23,9 @@ def get_current_timestamp():
     timestamp = datetime.datetime.now()
     return timestamp.strftime("%Y%m%d-%H:%M:%S.%f")[:-3]
 
+def get_date():
+    timestamp = datetime.datetime.now()
+    return timestamp.strftime("%m%d%Y")
 
 def list_files(path):
     list_of_files = []
@@ -47,6 +48,8 @@ def get_delivery_params(param_string):
     remote_file = None
     spool_file = None
     file = None
+    options = None
+    new_filename = None
     if isinstance(param_string, list):
         param_string = param_string[0]
     transport = param_string.get('transport')
@@ -62,10 +65,13 @@ def get_delivery_params(param_string):
     spool_file = param_string.get('spool_file')
     file = param_string.get('file')
     spool = param_string.get('spool')
+    options = param_string.get('options')
+    new_filename = param_string.get('new_filename')
     return {'transport': transport, 'host': host, 'login': login,
             'password': password, 'key': key, 'folder': folder, 'port': port,
             'local': local, 'id': id, 'remote_file': remote_file, 
-            'spool_file': spool_file, 'file': file, 'spool': spool}
+            'spool_file': spool_file, 'file': file, 'spool': spool,
+            'options': options, 'new_filename': new_filename}
 
 
 def write_log(log_file, message_type, params):

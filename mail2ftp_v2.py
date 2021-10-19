@@ -2,11 +2,12 @@ import logging
 import pathlib
 import re
 import sys
+import uuid
 from ast import literal_eval
 
 import mailparser
 
-from common import get_utc_timestamp, get_path, get_delivery_params, remove_file
+from common import get_utc_timestamp, get_path, get_delivery_params, remove_file, get_date
 from add_job import add_task
 
 PATH = get_path()
@@ -27,7 +28,7 @@ def save_mail_body(path, mail):
         exit(0)
 
 
-def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfix):
+def save_attached(mail, task_uuid, utc_ts, spool_path_file, upload_creds, received_id_posfix):
     """This function get files from attach and save it to spool"""
     payload = []
     params = get_delivery_params(upload_creds)
@@ -36,7 +37,6 @@ def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfi
             , host: {params['host']}, password: {params['password']}.\
             ,remote_dir:{params['folder']}, identity: {params['key']}")
         exit(0)
-
     for attach in mail.attachments:
         filename = re.search('filename=".*"', attach['content-disposition'].replace('\n', ' '))
         try:
@@ -48,12 +48,13 @@ def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfi
 
         # write attach to spool and polpulate delivery variable
         try:
-            mail.write_attachments(SPOOL_PATH/utc_ts)
+            mail.write_attachments(spool_path_file)
         except PermissionError as error:
             print(f"{error}.\n Can't write attached file")
             return
         payload.append({
-            'id': utc_ts,
+            'id':task_uuid,
+            'added': utc_ts,
             'postfix_id': received_id_posfix,
             'transport': params['transport'],
             'host': params['host'],
@@ -65,7 +66,9 @@ def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfi
             'file': filename,
             'spool': str(spool_path_file),
             'local': params['local'],
-            'status': 'initial delivery'
+            'status': 'initial delivery',
+            'options': params['options'],
+            'new_filename': params['new_filename']
         })
     return payload
 
@@ -73,7 +76,9 @@ def save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfi
 def main():
     delivery = []
     utc_ts = get_utc_timestamp()
-    raw_email = SPOOL_PATH / utc_ts
+    task_uuid = str(uuid.uuid4())
+    task_date = str(get_date())
+    raw_email = SPOOL_PATH / task_uuid
 
     # Read mail from POSTFIX
     data = sys.stdin.read()
@@ -92,7 +97,7 @@ def main():
             received_id_posfix = received['id']
 
     # create spool folder for POSTFIX mail ID
-    spool_path_file = SPOOL_PATH / utc_ts
+    spool_path_file = SPOOL_PATH / task_date / task_uuid
     save_mail_body(spool_path_file, mail.body)
 
     # search params for delivery in mail body
@@ -106,7 +111,7 @@ def main():
     upload_creds = re.sub(r"(\w+): ", r"'\1':", upload_creds).replace(' ', '')
     upload_creds = literal_eval(upload_creds)
     # Save attached files and populate delivery parameters for database insert
-    delivery = save_attached(mail, utc_ts, spool_path_file, upload_creds, received_id_posfix)
+    delivery = save_attached(mail, task_uuid, utc_ts, spool_path_file, upload_creds, received_id_posfix)
 
     # add job to database
     add_task(delivery)

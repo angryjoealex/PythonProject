@@ -12,7 +12,7 @@ from common import get_utc_timestamp, get_delivery_params, get_path, remove_file
 
 PATH = get_path()
 
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 def put_files(delivery, sftp):

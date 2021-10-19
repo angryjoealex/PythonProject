@@ -5,7 +5,8 @@ from db import Base, engine
 class Job(Base):
     __tablename__ = 'mail2ftp'
     idx = Column(BigInteger, primary_key=True, autoincrement=True)
-    id = Column(BigInteger)
+    id = Column(String)
+    added = Column(BigInteger)
     postfix_id = Column(String)
     transport = Column(String)
     host = Column(String)
@@ -16,6 +17,8 @@ class Job(Base):
     key = Column(String)
     file = Column(String)
     spool = Column(String)
+    options = Column(String)
+    new_filename = Column(String)
     local = Column(Boolean)
     last_error = Column(String)
     status = Column(String)
