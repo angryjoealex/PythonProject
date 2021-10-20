@@ -95,7 +95,7 @@ class Transport:
         return self.status
 
     def _sftp_put(self, local_file, remote_file):
-        self.conn.put(local_file, remote_file)
+        self.conn.put(local_file, remote_file, confirm=False) #disable chek if file were uploaded or not
 
     def _ftp_put(self, local_file, remote_file):
         file = open(local_file, 'rb')
