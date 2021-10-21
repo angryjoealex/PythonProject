@@ -98,6 +98,12 @@ class Retries(Middleware):
            retry_when is None and max_retries is not None and retries >= max_retries:
             self.logger.warning("Retries exceeded for message %r.", message.message_id)
             message.fail()
+            try:
+                target_actor_name='get_delay'
+                target_actor = broker.get_actor(target_actor_name)
+                target_actor.send(message.asdict(), None, exceeded=True)
+            except:
+                pass
             return
 
         message.options["retries"] += 1
@@ -116,7 +122,7 @@ class Retries(Middleware):
         target_actor_name='get_delay'
         try:
             target_actor = broker.get_actor(target_actor_name)
-            target_actor.send(message.asdict(), {'delay':str(delay)})
+            target_actor.send(message.asdict(), delay, exceeded=False)
         except:
            pass
         

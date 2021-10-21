@@ -31,8 +31,6 @@ def get_task(id):
             'spool': file.spool,
             'local': file.local
         })
-    # if delivery[0]['transport'] == 'SFTP':
-    #     SFTP_upload(delivery)
     connection = Transport(delivery)
     status = connection.put()
     for i in status:
