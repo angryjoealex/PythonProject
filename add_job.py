@@ -16,6 +16,7 @@ def add_task(delivery):
             task['port'] = DEFAULT_PORTS.get(task['transport'])
         if not task['local']:
             task['local'] = 0
+        options = str(task['options'])[:999]
         add_job = Job(
             id=task['id'],
             added=task['added'],
@@ -28,10 +29,11 @@ def add_task(delivery):
             folder=task['folder'],
             key=task['key'],
             file=task['file'],
+            filetitle=task['filetitle'],
             spool=task['spool'],
-            local=task['local'],
+            local=int(task['local']),
             status=task['status'],
-            options=task['options'],
+            options=options,
             new_filename=task['new_filename'],
             attempts=0
             )

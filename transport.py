@@ -78,10 +78,10 @@ class Transport:
                             self._ftp_put(str(params['spool_file']), params['remote_file'])
                         elif self.transport == 'S3':
                             sftp._s3_put(str(params['spool_file']), params['remote_file'])
-                        params.update(status='Completed', last_status_ts=get_utc_timestamp())
+                        params.update(status='Completed', last_status_ts=get_utc_timestamp(), next_attempt=None)
                         self.status.append(params)
                     except Exception as error:  # here we catch put failures
-                        params.update(status='Error', last_status_ts=get_utc_timestamp(), last_error=str(error))
+                        params.update(status='Error', last_status_ts=get_utc_timestamp(), last_error=str(error), next_attempt=None)
                         self.status.append(params)
                         continue
         except Exception as error:  # Here we catch connection failures
@@ -90,7 +90,7 @@ class Transport:
             err_last_error = str(error)
             for task in self.delivery:
                 params = get_delivery_params(task)
-                params.update(status=err_status, last_status_ts=err_last_status_ts, last_error=err_last_error)
+                params.update(status=err_status, last_status_ts=err_last_status_ts, last_error=err_last_error, next_attempt=None)
                 self.status.append(params)
         return self.status
 

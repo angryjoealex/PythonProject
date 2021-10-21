@@ -16,6 +16,11 @@ def get_task(id):
     job_to_do = Job.query.filter(and_(Job.id == id, Job.status != 'Completed'))
 
     for file in job_to_do:
+        spool_file = f"{file.spool}/{file.file}"
+        remote_file = f"{file.folder}/{file.file}"
+        if file.local:
+            spool_file = file.file
+            remote_file = f"{file.folder}/{file.filetitle}"
         delivery.append({
             'id': file.id,
             'transport': file.transport,
@@ -24,10 +29,10 @@ def get_task(id):
             'password': file.password,
             'port': file.port,
             'folder': file.folder,
-            'remote_file': f"{file.folder}/{file.file}",
+            'remote_file': remote_file,
             'key': file.key,
             'file': file.file,
-            'spool_file':f"{file.spool}/{file.file}",
+            'spool_file': spool_file,
             'spool': file.spool,
             'local': file.local
         })
@@ -40,12 +45,13 @@ def get_task(id):
                 'last_error': i.get('last_error'),
                 'last_status_ts': i.get('last_status_ts'),
                 'attempts': (Job.attempts + 1),
+                'next_attempt': i.get('next_attempt'),
                 })
         db_session.commit()
         if i.get('last_error'):
             error = i.get('last_error')
-        ## remove uploaded files
-        if i.get('status')=='Completed':
+        ## remove uploaded files if not local delivery
+        if i.get('status')=='Completed' and not i.get('local'):
             remove_file(i.get('spool_file'))
     ## check if there are any files except message
     if error:

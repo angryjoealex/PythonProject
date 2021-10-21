@@ -16,6 +16,7 @@ class Job(Base):
     folder = Column(String)
     key = Column(String)
     file = Column(String)
+    filetitle = Column(String)
     spool = Column(String)
     options = Column(String)
     new_filename = Column(String)

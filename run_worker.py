@@ -13,7 +13,7 @@ from models import Job
 
 dramatiq.set_broker(RabbitmqBroker(url="amqp://guest:guest@127.0.0.1:5672"))
 
-@dramatiq.actor(max_retries=1, min_backoff=120000)
+@dramatiq.actor(max_retries=2, min_backoff=120000)
 def send_files(id):
     get_task(id)
 
