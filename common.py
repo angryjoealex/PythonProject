@@ -62,13 +62,13 @@ def get_delivery_params(param_string):
 
 def write_log(log_file, message_type, params):
     message = None
-    login=params.get('login')
-    password=params.get('password')
-    host=params.get('host')
-    port=params.get('port')
-    error=params.get('last_error')
-    remote_file=params.get('remote_file')
-    spool_file=params.get('spool_file')
+    login = params.get('login')
+    password = params.get('password')
+    host = params.get('host')
+    port = params.get('port')
+    error = params.get('last_error')
+    remote_file = params.get('remote_file')
+    spool_file = params.get('spool_file')
     with open(log_file, 'a+') as log:
         if message_type == 'connecting':
             message = f"\nDEB [{get_current_timestamp()}] Going to connect to {login}:{password}@{host}:{port}"
