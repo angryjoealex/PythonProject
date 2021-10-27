@@ -36,20 +36,6 @@ def list_files(path):
 
 
 def get_delivery_params(param_string):
-    transport = None
-    host = None
-    login = None
-    password = None
-    key = None
-    folder = None
-    port = None
-    local = None
-    id = None
-    remote_file = None
-    spool_file = None
-    file = None
-    options = None
-    new_filename = None
     if isinstance(param_string, list):
         param_string = param_string[0]
     transport = param_string.get('transport')
