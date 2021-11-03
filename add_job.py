@@ -40,9 +40,3 @@ def add_task(delivery):
         db_session.add(add_job)
         db_session.commit()
     send_files.send(delivery[0]['id'])
-    # send_files.send_with_options(
-    #      args=(delivery[0]['id'],),
-    #      #on_failure=print_error
-    #      on_failure=print_result
-    #     )
-

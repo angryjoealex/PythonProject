@@ -15,7 +15,7 @@ def remove_file(path_to_file):
 
 
 def get_utc_timestamp():
-    utc_timestamp = str(datetime.datetime.utcnow().timestamp()).replace('.', '')
+    utc_timestamp = str(datetime.datetime.utcnow().strftime("%s.%f")).replace('.', '')
     return utc_timestamp
 
 

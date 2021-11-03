@@ -5,7 +5,8 @@ from sqlalchemy import and_, or_, not_
 from db import db_session
 from common import get_path, remove_file, list_files
 from models import Job
-from transport import Transport
+# from transport import Transport
+from transport_new import Transport
 
 PATH = get_path()
 
@@ -38,6 +39,7 @@ def get_task(id):
         })
     connection = Transport(delivery)
     status = connection.put()
+
     for i in status:
         job = Job.query.filter(and_(Job.id == i['id'], Job.file == i['file'])).\
             update({
