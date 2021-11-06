@@ -14,19 +14,23 @@ class Ftp:
         self.tls = False
         if param.get('options'):
             self.tls = param.get('options').get('TLS', False)
-            self.tls
+        self.connection = ftplib.FTP()
         if self.tls:
             self.connection = ftplib.FTP_TLS()
-        else:
-            self.connection = ftplib.FTP()
-        self.connection.connect(self.host, self.port, timeout=90)
-        self.connection.login(self.username, self.password)
-        if self.tls:
-            self.connection.prot_p()
-            self.connection.nlst()
+        self.connection.set_debuglevel(1)
+
+    def _connect(self):
+        try:
+            self.connection.connect(self.host, self.port, timeout=90)
+            self.connection.login(self.username, self.password)
+            if self.tls:
+                self.connection.prot_p()
+                self.connection.nlst()
+        except Exception as error:
+            return error
 
     def _put(self, local_file, remote_file):
-        self.connection.storbinary('STOR '+ remote_file, open (local_file, 'rb')) 
+        self.connection.storbinary('STOR ' + remote_file, open (local_file, 'rb')) 
 
     def __enter__(self):
         return self

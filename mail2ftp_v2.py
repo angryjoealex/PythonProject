@@ -16,8 +16,9 @@ PATH = get_path()
 SPOOL_PATH = PATH / 'spool'
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO,
+                    level=logging.DEBUG,
                     filename=PATH / 'mail2_ftp2.log')
+logger = logging.getLogger(__name__) 
 
 def save_mail_body(path, mail):
     try:

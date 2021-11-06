@@ -39,7 +39,6 @@ def get_task(id):
         })
     connection = Transport(delivery)
     status = connection.put()
-
     for i in status:
         job = Job.query.filter(and_(Job.id == i['id'], Job.file == i['file'])).\
             update({
@@ -52,14 +51,14 @@ def get_task(id):
         db_session.commit()
         if i.get('last_error'):
             error = i.get('last_error')
-        ## remove uploaded files if not local delivery
-        if i.get('status')=='Completed' and not i.get('local'):
+        # remove uploaded files if not local delivery
+        if i.get('status') == 'Completed' and not i.get('local'):
             remove_file(i.get('spool_file'))
-    ## check if there are any files except message
+    # check if there are any files except message
     if error:
         raise Exception('Restart task')
-    #check if there any attachments    
-    files=list_files(delivery[0]['spool'])
+    # check if there any attachments    
+    files = list_files(delivery[0]['spool'])
     files.remove('message')
     if len(files) == 0:
         shutil.rmtree(delivery[0]['spool'], ignore_errors=True)
