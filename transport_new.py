@@ -5,7 +5,6 @@ import pysftp
 from pysftp import exceptions
 
 from common import get_path, get_utc_timestamp, get_delivery_params
-from sqlalchemy import log
 
 from transport.SFTP import Sftp
 from transport.FTP import Ftp
@@ -27,6 +26,7 @@ class Transport:
         self.logger_connection_handler.setFormatter(logging.Formatter(self.frm, "%Y%m%d-%H:%M:%S"))
         self.logger.addHandler(self.logger_connection_handler)
         
+
 
     def _connection(self):
         if self.transport == 'SFTP':
@@ -64,6 +64,7 @@ class Transport:
                         params.update(status='Error', last_status_ts = get_utc_timestamp(), last_error=str(error), next_attempt=None)
                         self.status.append(params)
                         self.logger.info(f"FAILED to upload {str(params['spool_file'])} to {self.param.get('host')}\{params['remote_file']}")
+                        self.logger.info(str(error))
                         continue
         except Exception as error:  # Here we catch connection failures
             err_status = 'Error'

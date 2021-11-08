@@ -26,7 +26,7 @@ def get_delay(message, delay, exceeded):
             job.update({'next_attempt': (Job.last_status_ts + func.coalesce(delay*1000,0))})
             db_session.commit()
         else:
-            job.update({'status': 'All delivery retries failed', 'next_attempt':None})
+            job.update({'status': 'All delivery retries failed', 'next_attempt': None})
             db_session.commit()
-            del_spool=Job.query.filter(and_(Job.id == job_id, Job.status == 'All delivery retries failed')).first()
+            del_spool = Job.query.filter(and_(Job.id == job_id, Job.status == 'All delivery retries failed')).first()
             shutil.rmtree(del_spool.spool, ignore_errors=True)

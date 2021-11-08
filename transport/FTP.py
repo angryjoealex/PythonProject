@@ -2,9 +2,10 @@ import ftplib
 import logging
 import sys 
 
+from contextlib import redirect_stdout
 from common import get_path, get_utc_timestamp, get_delivery_params
 
-from contextlib import redirect_stdout
+
 
 class Ftp:
     def __init__(self, delivery, path):
@@ -23,7 +24,6 @@ class Ftp:
         if self.tls:
             self.connection = ftplib.FTP_TLS()
         self.connection.set_debuglevel(1)
-        # self.std_out_bckup = sys.stdout
         self.logger = logging.getLogger(__name__)
         self.logger_connection_handler = logging.FileHandler(self.log_file)
         self.frm = "%(levelname)-.3s [%(asctime)s.%(msecs)03d]  %(name)s: %(message)s"

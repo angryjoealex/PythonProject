@@ -1,4 +1,8 @@
+import logging
 import boto3
+
+from contextlib import redirect_stdout
+
 from common import get_path, get_utc_timestamp, get_delivery_params
 
 class S3:
@@ -11,6 +15,12 @@ class S3:
         self.key = param.get('ftp_identity')
         self.log_file = str(path / 'connection_logs' / str(param.get('id')))
         self.delivery = delivery
+        boto3.set_stream_logger('botocore', level=logging.DEBUG)
+        self.logger = logging.getLogger('botocore')
+        self.logger_connection_handler = logging.FileHandler(self.log_file)
+        self.frm = "%(levelname)-.3s [%(asctime)s.%(msecs)03d]  %(name)s: %(message)s"
+        self.logger_connection_handler.setFormatter(logging.Formatter(self.frm, "%Y%m%d-%H:%M:%S"))
+        self.logger.addHandler(self.logger_connection_handler)
 
     def _connect(self):
         try:
@@ -28,4 +38,4 @@ class S3:
         return self
 
     def __exit__(self, *args):
-        self.connection.__exit__(*args)
+        return self
