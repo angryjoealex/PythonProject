@@ -5,7 +5,6 @@ import pysftp
 from pysftp import exceptions
 
 from common import get_path, get_utc_timestamp, get_delivery_params
-# from .transport.SFTP import Sftp
 
 from transport.SFTP import Sftp
 from transport.FTP import Ftp
@@ -21,13 +20,14 @@ class Transport:
         self.transport = self.param.get('transport')
         self.delivery = delivery
         self.status = []
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level = logging.DEBUG,
-                    filename = PATH / 'connection_logs' / str(self.param.get('id')))
         self.logger = logging.getLogger(__name__)
+        self.logger_connection_handler = logging.FileHandler(PATH / 'connection_logs' / str(self.param.get('id')))
+        self.frm = "%(levelname)-.3s [%(asctime)s.%(msecs)03d]  %(name)s: %(message)s"
+        self.logger_connection_handler.setFormatter(logging.Formatter(self.frm, "%Y%m%d-%H:%M:%S"))
+        self.logger.addHandler(self.logger_connection_handler)
+        
 
     def _connection(self):
-        
         if self.transport == 'SFTP':
             self.connection = Sftp(self.delivery, PATH)
         elif self.transport == 'FTP':
