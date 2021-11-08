@@ -5,6 +5,7 @@ import pysftp
 from pysftp import exceptions
 
 from common import get_path, get_utc_timestamp, get_delivery_params
+from sqlalchemy import log
 
 from transport.SFTP import Sftp
 from transport.FTP import Ftp
