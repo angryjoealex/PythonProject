@@ -44,10 +44,13 @@ class Transport:
         try:
             self.connected = self.connection._connect()
             if self.connected:
+                self.logger.info(f"FAILED to connect {self.param.get('transport')} {self.param.get('login')}:{self.param.get('password')}@{self.param.get('host')}:{self.param.get('port')} Error:{self.connected}")
                 raise Exception(self.connected)
+            self.logger.info(f"Connected to connect {self.param.get('transport')} {self.param.get('login')}:{self.param.get('password')}@{self.param.get('host')}:{self.param.get('port')}")
             with self.connection:
                 for task in self.delivery:
                     params = get_delivery_params(task)
+                    self.logger.info(f"Going to upload {str(params['spool_file'])} to {self.param.get('host')}\{params['remote_file']}")
                     try:
                         if self.transport != 'S3':
                             self.connection._put(str(params['spool_file']), params['remote_file'])
@@ -55,9 +58,11 @@ class Transport:
                             self.connection._put(str(params['spool_file']), params['folder'], params['file'])
                         params.update(status='Completed', last_status_ts = get_utc_timestamp(), next_attempt=None)
                         self.status.append(params)
+                        self.logger.info(f"UPLOADED {str(params['spool_file'])} to {self.param.get('host')}\{params['remote_file']}")
                     except Exception as error:  # here we catch put failures
                         params.update(status='Error', last_status_ts = get_utc_timestamp(), last_error=str(error), next_attempt=None)
                         self.status.append(params)
+                        self.logger.info(f"FAILED to upload {str(params['spool_file'])} to {self.param.get('host')}\{params['remote_file']}")
                         continue
         except Exception as error:  # Here we catch connection failures
             err_status = 'Error'

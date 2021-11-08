@@ -58,26 +58,3 @@ def get_delivery_params(param_string):
             'local': local, 'id': id, 'remote_file': remote_file, 
             'spool_file': spool_file, 'file': file, 'spool': spool,
             'options': options, 'new_filename': new_filename}
-
-
-def write_log(log_file, message_type, params):
-    message = None
-    login = params.get('login')
-    password = params.get('password')
-    host = params.get('host')
-    port = params.get('port')
-    error = params.get('last_error')
-    remote_file = params.get('remote_file')
-    spool_file = params.get('spool_file')
-    with open(log_file, 'a+') as log:
-        if message_type == 'connecting':
-            message = f"\nDEB [{get_current_timestamp()}] Going to connect to {login}:{password}@{host}:{port}"
-        if message_type == 'connect_failed':
-            message = f"\nDEB [{get_current_timestamp()}] FAILED to connect to {login}:{password}@{host}:{port}. {error}"
-        if message_type == 'uploading':
-            message = f"\nDEB [{get_current_timestamp()}] Going to upload {spool_file} to {login}:{password}@{host}:{port} {remote_file}"
-        if message_type == 'uploaded': 
-            message = f"\nDEB [{get_current_timestamp()}] File {spool_file} UPLOADED to {login}:{password}@{host}:{port} {remote_file}"
-        if message_type == 'failed': 
-            message = f"\nDEB [{get_current_timestamp()}] FAILED {spool_file} upload to  {login}:{password}@{host}:{port} {remote_file}. {error}"
-        log.write(message)
