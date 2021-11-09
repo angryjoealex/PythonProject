@@ -1,4 +1,6 @@
 import pysftp
+
+from pathlib import PurePosixPath
 from pysftp import exceptions
 
 from common import get_path, get_utc_timestamp, get_delivery_params
@@ -43,6 +45,10 @@ class Sftp:
             return error
 
     def _put(self, local_file, remote_file):
+        if not remote_file.startswith("/"):  # normalize path
+            remote_file = "/" + remote_file
+        remote_directory = str(PurePosixPath(remote_file).parent)
+        self.connection.makedirs(remote_directory)  # create remote dirs if not exists
         self.connection.put(local_file, remote_file, confirm=False)  # disable check if file were uploaded or not
 
     def __enter__(self):

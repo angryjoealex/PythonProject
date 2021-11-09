@@ -53,10 +53,7 @@ class Transport:
                     params = get_delivery_params(task)
                     self.logger.info(f"Going to upload {str(params['spool_file'])} to {self.param.get('host')}\{params['remote_file']}")
                     try:
-                        if self.transport != 'S3':
-                            self.connection._put(str(params['spool_file']), params['remote_file'])
-                        else:
-                            self.connection._put(str(params['spool_file']), params['folder'], params['file'])
+                        self.connection._put(str(params['spool_file']), params['remote_file'])
                         params.update(status='Completed', last_status_ts = get_utc_timestamp(), next_attempt=None)
                         self.status.append(params)
                         self.logger.info(f"UPLOADED {str(params['spool_file'])} to {self.param.get('host')}\{params['remote_file']}")

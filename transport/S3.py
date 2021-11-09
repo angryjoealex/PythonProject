@@ -1,6 +1,7 @@
 import logging
 import boto3
 
+from pathlib import PurePosixPath
 from contextlib import redirect_stdout
 
 from common import get_path, get_utc_timestamp, get_delivery_params
@@ -31,8 +32,13 @@ class S3:
         except Exception as error:
             return error
 
-    def _put(self, local_file, bucket, remote_file):
-        self.connection.upload_file(local_file, bucket, remote_file) 
+    def _put(self, local_file, remote_file):
+        if not remote_file.startswith("/"): # normalize path
+            remote_file = "/" + remote_file
+        full_remote = str(PurePosixPath(dir).parent)
+        bucket = full_remote.split('/',2)[1]
+        path_from_bucket = remote_file.split('/',2)[2]
+        self.connection.upload_file(local_file, bucket, path_from_bucket) 
 
     def __enter__(self):
         return self

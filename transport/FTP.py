@@ -3,6 +3,8 @@ import logging
 import sys 
 
 from contextlib import redirect_stdout
+from pathlib import PurePosixPath
+
 from common import get_path, get_utc_timestamp, get_delivery_params
 
 
@@ -44,7 +46,19 @@ class Ftp:
 
     def _put(self, local_file, remote_file):
         with redirect_stdout(self.logger):
+            if not remote_file.startswith("/"): # normalize path
+                remote_file = "/" + remote_file
+            remote_directory = str(PurePosixPath(remote_file).parent)
+            self._ftp_mkdirs(remote_directory)
+            self.connection.cwd("/")
             self.connection.storbinary('STOR ' + remote_file, open (local_file, 'rb')) 
+
+    def _ftp_mkdirs(self, folder):
+        # create paths if do not exists
+        for subfolder in folder.split('/'):
+            if subfolder and subfolder not in self.connection.nlst():
+                self.connection.mkd(subfolder)
+            self.connection.cwd(subfolder)
 
     def __enter__(self):
         return self
