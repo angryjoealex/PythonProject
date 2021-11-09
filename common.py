@@ -2,9 +2,16 @@ import datetime
 import os
 import pathlib
 import sys
+import smtplib
+
 from datetime import timezone
 from pathlib import Path
 
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
+from email import encoders
 
 def get_path():
     path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
@@ -59,3 +66,28 @@ def get_delivery_params(param_string):
             'local': local, 'id': id, 'remote_file': remote_file, 
             'spool_file': spool_file, 'file': file, 'spool': spool,
             'options': options, 'new_filename': new_filename}
+
+def sendMail(to, fro, subject, text, files=[],server="localhost"):
+    assert type(to)==list
+    assert type(files)==list
+
+
+    msg = MIMEMultipart()
+    msg['From'] = fro
+    msg['To'] = COMMASPACE.join(to)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
+
+    msg.attach( MIMEText(text) )
+
+    for file in files:
+        part = MIMEBase('application', "octet-stream")
+        part.set_payload( open(file,"rb").read() )
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', 'attachment; filename="%s"'
+                       % os.path.basename(file))
+        msg.attach(part)
+
+    smtp = smtplib.SMTP(server)
+    smtp.sendmail(fro, to, msg.as_string() )
+    smtp.close()
