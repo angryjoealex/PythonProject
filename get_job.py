@@ -38,8 +38,8 @@ def get_task(id):
             'local': file.local
         })
     connection = Transport(delivery)
-    status = connection.put()
-    for i in status:
+    connection.put()  ## send files to the destination
+    for i in connection.status:
         job = Job.query.filter(and_(Job.id == i['id'], Job.file == i['file'])).\
             update({
                 'status': i.get('status'),

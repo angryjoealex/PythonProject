@@ -118,7 +118,6 @@ def main():
         print('No deilvery parameters are defined')
         return
     upload_creds = get_param.group(0).replace('mail2ftp:', '')
-    # upload_creds = re.sub(r"(\w+): ", r"'\1':", upload_creds).replace(' ', '')
     upload_creds = re.sub(r"(\w+): ", r"'\1':", upload_creds)
     upload_creds = literal_eval(upload_creds)  #sting to dict
     params = get_delivery_params(upload_creds)

@@ -35,7 +35,7 @@ class S3:
     def _put(self, local_file, remote_file):
         if not remote_file.startswith("/"): # normalize path
             remote_file = "/" + remote_file
-        full_remote = str(PurePosixPath(dir).parent)
+        full_remote = str(PurePosixPath(remote_file).parent)
         bucket = full_remote.split('/',2)[1]
         path_from_bucket = remote_file.split('/',2)[2]
         self.connection.upload_file(local_file, bucket, path_from_bucket) 

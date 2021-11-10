@@ -11,6 +11,8 @@ from db import db_session
 from get_job import get_task
 from models import Job
 
+EXCEEDED = 'All delivery retries failed'
+
 dramatiq.set_broker(RabbitmqBroker(url="amqp://guest:guest@127.0.0.1:5672"))
 
 @dramatiq.actor(max_retries=2, min_backoff=120000)
@@ -23,10 +25,10 @@ def get_delay(message, delay, exceeded):
         job_id = message.get('args')[0]
         job = Job.query.filter(and_(Job.id == job_id, Job.status != 'Completed'))
         if not exceeded:
-            job.update({'next_attempt': (Job.last_status_ts + func.coalesce(delay*1000,0))})
+            job.update({'next_attempt': (Job.last_status_ts + func.coalesce(delay*1000, 0))})
             db_session.commit()
         else:
-            job.update({'status': 'All delivery retries failed', 'next_attempt': None})
+            job.update({'status': EXCEEDED, 'next_attempt': None})
             db_session.commit()
-            del_spool = Job.query.filter(and_(Job.id == job_id, Job.status == 'All delivery retries failed')).first()
+            del_spool = Job.query.filter(and_(Job.id == job_id, Job.status == EXCEEDED)).first()
             shutil.rmtree(del_spool.spool, ignore_errors=True)

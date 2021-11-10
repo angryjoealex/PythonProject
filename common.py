@@ -3,6 +3,7 @@ import os
 import pathlib
 import sys
 import smtplib
+import socket
 
 from datetime import timezone
 from pathlib import Path
@@ -12,6 +13,8 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 from email import encoders
+
+from sqlalchemy.sql.operators import from_
 
 def get_path():
     path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
@@ -67,27 +70,41 @@ def get_delivery_params(param_string):
             'spool_file': spool_file, 'file': file, 'spool': spool,
             'options': options, 'new_filename': new_filename}
 
-def sendMail(to, fro, subject, text, files=[],server="localhost"):
-    assert type(to)==list
-    assert type(files)==list
-
-
+def send_mail(to, subject, text, files=None, server="localhost"):
+    status = None
+    if not isinstance(to, list):
+        if isinstance(to, str):
+            to = list(to.strip().split(','))
+        else:
+            status = {'type': 'error', 'msg':'email address is not properly defined'}
+            return status  
+    if not isinstance(files, list):
+        if isinstance(to, str):
+            to = list(to.strip().split(','))
+        else:
+            status = {'type': 'error', 'msg':'file path is not properly defined'}
+            return status  
+    
     msg = MIMEMultipart()
-    msg['From'] = fro
+    msg['From'] = socket.gethostname() # get host name where the script runs
     msg['To'] = COMMASPACE.join(to)
     msg['Date'] = formatdate(localtime=True)
     msg['Subject'] = subject
-
     msg.attach( MIMEText(text) )
-
-    for file in files:
-        part = MIMEBase('application', "octet-stream")
-        part.set_payload( open(file,"rb").read() )
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"'
-                       % os.path.basename(file))
-        msg.attach(part)
+    try:
+        for file in files:
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload( open(file,"rb").read() )
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"'
+                        % os.path.basename(file))
+            msg.attach(part)
+    except Exception as error:
+        status = {'type': 'error', 'msg':{error}}
+        return status
 
     smtp = smtplib.SMTP(server)
     smtp.sendmail(fro, to, msg.as_string() )
     smtp.close()
+    status = {'type': 'success', 'msg':'email has been succesfully sent'}
+    return status

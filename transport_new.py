@@ -71,5 +71,3 @@ class Transport:
                 params = get_delivery_params(task)
                 params.update(status = err_status, last_status_ts = err_last_status_ts, last_error = err_last_error, next_attempt = None)
                 self.status.append(params)
-        return self.status
-
