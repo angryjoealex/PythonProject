@@ -64,13 +64,17 @@ def get_delivery_params(param_string):
     spool = param_string.get('spool')
     options = param_string.get('options')
     new_filename = param_string.get('new_filename')
+    failyre_reply = param_string.get('onFailure')
+    succes_reply = param_string.get('onSucces')
     return {'transport': transport, 'host': host, 'login': login,
             'password': password, 'key': key, 'folder': folder, 'port': port,
             'local': local, 'id': id, 'remote_file': remote_file, 
             'spool_file': spool_file, 'file': file, 'spool': spool,
-            'options': options, 'new_filename': new_filename}
+            'options': options, 'new_filename': new_filename,
+            'failyre_reply': failyre_reply, 'succes_reply': succes_reply}
 
-def send_mail(to, subject, text, files=None, server="localhost"):
+
+def send_mail(to, subject, text, files=None, server="localhost", port =1025):
     status = None
     if not isinstance(to, list):
         if isinstance(to, str):
@@ -78,12 +82,13 @@ def send_mail(to, subject, text, files=None, server="localhost"):
         else:
             status = {'type': 'error', 'msg':'email address is not properly defined'}
             return status  
-    if not isinstance(files, list):
-        if isinstance(to, str):
-            to = list(to.strip().split(','))
-        else:
-            status = {'type': 'error', 'msg':'file path is not properly defined'}
-            return status  
+    if files:
+        if not isinstance(files, list):
+            if isinstance(to, str):
+                to = list(to.strip().split(','))
+            else:
+                status = {'type': 'error', 'msg':'file path is not properly defined'}
+                return status  
     
     msg = MIMEMultipart()
     msg['From'] = socket.gethostname() # get host name where the script runs
@@ -91,20 +96,21 @@ def send_mail(to, subject, text, files=None, server="localhost"):
     msg['Date'] = formatdate(localtime=True)
     msg['Subject'] = subject
     msg.attach( MIMEText(text) )
-    try:
-        for file in files:
-            part = MIMEBase('application', "octet-stream")
-            part.set_payload( open(file,"rb").read() )
-            encoders.encode_base64(part)
-            part.add_header('Content-Disposition', 'attachment; filename="%s"'
-                        % os.path.basename(file))
-            msg.attach(part)
-    except Exception as error:
-        status = {'type': 'error', 'msg':{error}}
-        return status
+    if files:
+        try:
+            for file in files:
+                part = MIMEBase('application', "octet-stream")
+                part.set_payload( open(file,"rb").read() )
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', 'attachment; filename="%s"'
+                            % os.path.basename(file))
+                msg.attach(part)
+        except Exception as error:
+            status = {'type': 'error', 'msg':{error}}
+            return status
 
-    smtp = smtplib.SMTP(server)
-    smtp.sendmail(fro, to, msg.as_string() )
+    smtp = smtplib.SMTP(server, port)
+    smtp.sendmail(socket.gethostname(), to, msg.as_string() )
     smtp.close()
     status = {'type': 'success', 'msg':'email has been succesfully sent'}
     return status

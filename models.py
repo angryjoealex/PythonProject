@@ -26,6 +26,8 @@ class Job(Base):
     last_status_ts = Column(BigInteger)
     attempts = Column(Integer)
     next_attempt = Column(String)
+    failyre_reply = Column(String)
+    succes_reply = Column(String)
 
     def __repr__(self):
         return f'<job {self.id} {self.postfix_id}>'

@@ -35,6 +35,8 @@ def add_task(delivery):
             status=task['status'],
             options=options,
             new_filename=task['new_filename'],
+            failyre_reply=task['failyre_reply'],
+            succes_reply=task['succes_reply'],
             attempts=0
             )
         db_session.add(add_job)

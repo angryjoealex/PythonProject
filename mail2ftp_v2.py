@@ -78,7 +78,9 @@ def save_attached(mail, task_uuid, utc_ts, spool_path_file, params, received_id_
                 'local': params.get('local'),
                 'status': 'initial delivery',
                 'options': params.get('options'),
-                'new_filename': params.get('new_filename')
+                'new_filename': params.get('new_filename'),
+                'failyre_reply': params.get('failyre_reply'),
+                'succes_reply': params.get('succes_reply')
             })
     return payload
 
